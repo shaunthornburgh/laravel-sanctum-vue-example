@@ -21,7 +21,6 @@ class RegistrationController extends Controller
 
         return response([
             'user' => new UserResource($user),
-            'token' => $user->createToken('AppToken')->plainTextToken
         ], 201);
     }
 }

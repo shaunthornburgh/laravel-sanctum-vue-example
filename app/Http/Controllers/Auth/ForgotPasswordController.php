@@ -12,7 +12,7 @@ class ForgotPasswordController extends Controller
     public function store(StorePasswordTokenRequest $request): JsonResponse
     {
         $status = Password::sendResetLink([
-            'email' => $request->data()->getEmail()
+            'email' => $request->validated('email')
         ]);
 
         return $status === Password::RESET_LINK_SENT

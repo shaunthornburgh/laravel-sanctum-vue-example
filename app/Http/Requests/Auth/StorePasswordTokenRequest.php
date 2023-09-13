@@ -2,7 +2,6 @@
 
 namespace App\Http\Requests\Auth;
 
-use App\DTO\PasswordReset;
 use Illuminate\Foundation\Http\FormRequest;
 
 class StorePasswordTokenRequest extends FormRequest

@@ -5,9 +5,10 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\StoreAuthRequest;
 use App\Http\Resources\UserResource;
-use App\Models\User;
-use Illuminate\Http\Response;
-use Illuminate\Support\Facades\Hash;
+
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class AuthController extends Controller
 {
@@ -15,32 +16,36 @@ class AuthController extends Controller
      * Store a newly created resource in storage.
      *
      * @param StoreAuthRequest $request
-     * @return Response
+     * @return JsonResponse
      */
-    public function store(StoreAuthRequest $request): Response
+    public function store(StoreAuthRequest $request): JsonResponse
     {
-        $user = User::where('email', $request->validated('email'))->first();
+        if (Auth::attempt($request->validated())) {
+            $request->session()->regenerate();
 
-        if (!$user || !Hash::check($request->validated('password'), $user->password)) {
-            return response([
-                'message' => 'Invalid Credentials'
-            ], 401);
+            return response()->json([
+                'user' => new UserResource(Auth::user()),
+            ]);
         }
 
-        return response([
-            'user' => new UserResource($user),
-            'token' => $user->createToken('AppToken')->plainTextToken
-        ], 201);
+        return response()->json([
+            'message' => 'Invalid credentials',
+        ], 401);
+
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(): Response
+    public function destroy(Request $request): JsonResponse
     {
-        auth()->user()->tokens()->delete();
+        Auth::guard('web')->logout();
 
-        return response([
+        $request->session()->invalidate();
+
+        $request->session()->regenerateToken();
+
+        return response()->json([
             'message' => 'Logged out'
         ], 200);
     }

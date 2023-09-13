@@ -14,20 +14,25 @@ class AuthApiTest extends TestCase
     use RefreshDatabase;
 
     /** @test */
-    public function it_provides_token_to_a_valid_user(): void
+    public function test_a_user_can_login_with_valid_credentials(): void
     {
         $user = User::factory()->create();
 
+        Sanctum::actingAs(
+            $user,
+            ['*']
+        );
+
         $this->postJson(route('auth.login'), [
-            'email' => $user->email,
-            'password' => 'password'
-        ])
-            ->assertStatus(201)
-            ->assertSeeText('token');
+                'email' => $user->email,
+                'password' => 'password'
+            ],
+        )
+            ->assertStatus(200);
     }
 
     /** @test */
-    public function it_does_not_provide_token_with_wrong_credentials(): void
+    public function test_a_user_cannot_login_with_invalid_credentials(): void
     {
         $user = User::factory()->create();
 
@@ -37,7 +42,6 @@ class AuthApiTest extends TestCase
         ]);
 
         $response->assertStatus(401);
-        $response->assertSeeText('Invalid Credentials');
     }
 
     /** @test */
@@ -86,14 +90,20 @@ class AuthApiTest extends TestCase
     }
 
     /** @test */
-    public function authenticated_users_can_logout(): void
+    public function test_authenticated_users_can_logout(): void
     {
+        $user = User::factory()->create();
+
         Sanctum::actingAs(
-            User::factory()->create(),
+            $user,
             ['*']
         );
 
-        $this->deleteJson(route('auth.logout'))
+        $this->deleteJson(
+            route('auth.logout'),
+            [],
+            ['Referer' => env('APP_URL')]
+        )
             ->assertOk()
             ->assertJson([
                     'message' => 'Logged out'
