@@ -7,6 +7,7 @@ use App\Http\Requests\Auth\StoreUserRequest;
 use App\Http\Resources\UserResource;
 use App\Models\User;
 use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Auth;
 
 class RegistrationController extends Controller
 {
@@ -18,6 +19,8 @@ class RegistrationController extends Controller
     public function store(StoreUserRequest $request): Response
     {
         $user = User::create($request->validated());
+
+        Auth::login($user);
 
         return response([
             'user' => new UserResource($user),

@@ -1,8 +1,3 @@
 <template>
-    <h1>Welcome to the Laravel, Sanctum, Vue Demo</h1>
+    <router-view />
 </template>
-
-<script setup>
-</script>
-<style>
-</style>

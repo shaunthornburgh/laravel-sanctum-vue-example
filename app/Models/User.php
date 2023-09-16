@@ -3,7 +3,8 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
-use App\Events\PasswordResetFormSubmitted;
+use App\Notifications\PasswordResetNotification;
+use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -46,6 +47,6 @@ class User extends Authenticatable
 
     public function sendPasswordResetNotification($token)
     {
-        event(new PasswordResetFormSubmitted($this, $token));
+        $this->notify(new PasswordResetNotification($this, $token));
     }
 }
