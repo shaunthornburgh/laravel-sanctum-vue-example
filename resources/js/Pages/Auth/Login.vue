@@ -1,21 +1,23 @@
-<template>
-    <Header page-title="Sign in to your account" />
+    <template>
+        <Header page-title="Sign in to your account" />
 
-    <div class="mt-10 sm:mx-auto sm:w-full sm:max-w-sm">
-        <form class="space-y-6" action="#" method="POST">
-            <div>
-                <label for="email" class="block text-sm font-medium leading-6 text-gray-900">Email address</label>
-                <div class="mt-2">
-                    <input
-                        v-model="formData.email"
-                        id="email"
-                        name="email"
-                        type="email"
-                        autocomplete="email"
-                        required
-                        class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" />
+        <div class="mt-10 sm:mx-auto sm:w-full sm:max-w-sm">
+            <form class="space-y-6" action="#" method="POST">
+                <div>
+                    <label for="email" class="block text-sm font-medium leading-6 text-gray-900">Email address</label>
+                    <div class="mt-2">
+                        <input
+                            v-model="formData.email"
+                            id="email"
+                            name="email"
+                            type="email"
+                            autocomplete="email"
+                            required
+                            class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                        />
+                    </div>
+                    <validation-errors :errors="errorFor('email')" />
                 </div>
-            </div>
 
             <div>
                 <div class="flex items-center justify-between">
@@ -33,10 +35,11 @@
                         id="password"
                         name="password"
                         type="password"
-                        autocomplete="current-password"
                         required
-                        class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" />
+                        class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                    />
                 </div>
+                <validation-errors :errors="errorFor('password')" />
             </div>
 
             <div>
@@ -65,6 +68,10 @@ import { reactive } from 'vue';
 import axios from "axios";
 import router from "../../Router";
 import { useUserStore } from '../../store/user'
+import useValidationErrorHandling from "../../Shared/Composable/useValidationErrorHandling.js";
+import ValidationErrors from "../../Components/Form/ValidationErrors.vue";
+
+const { errors, errorFor } = useValidationErrorHandling();
 
 const state = reactive ({
     loading: false
@@ -78,9 +85,10 @@ const formData = reactive({
 });
 
 const login = async () => {
-    state.errors = [];
     state.loading = true;
+
     await axios.get('/sanctum/csrf-cookie')
+
     axios
         .post("/api/auth/login", {
             email: formData.email,
@@ -92,7 +100,8 @@ const login = async () => {
             router.push({ name: 'app.dashboard' })
         })
         .catch(error => {
-            state.loading = false;
+            errors.value = error.response.data.errors;
         })
+    state.loading = false;
 }
 </script>

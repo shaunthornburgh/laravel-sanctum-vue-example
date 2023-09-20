@@ -2,6 +2,7 @@
     <Header page-title="Enter Your New Password" />
 
     <div class="mt-10 sm:mx-auto sm:w-full sm:max-w-sm">
+        <success v-if="state.successAlert">{{ state.successAlert }}</success>
         <form class="space-y-6" action="#" method="POST">
             <div>
                 <label for="password" class="block text-sm font-medium leading-6 text-gray-900">Password</label>
@@ -14,6 +15,7 @@
                         required
                         class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" />
                 </div>
+                <validation-errors :errors="errorFor('password')" />
             </div>
 
             <div>
@@ -27,6 +29,7 @@
                         required
                         class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" />
                 </div>
+                <validation-errors :errors="errorFor('password_confirmation')" />
             </div>
 
             <div>
@@ -54,13 +57,19 @@ import Header from "../../Components/Auth/Header.vue";
 import {reactive} from "vue";
 import axios from "axios";
 import { useRoute } from 'vue-router'
+import useValidationErrorHandling from "../../Shared/Composable/useValidationErrorHandling.js";
+import useGetErrorResponseStatus from "../../Shared/Composable/useGetErrorResponseStatus.js";
+import ValidationErrors from "../../Components/Form/ValidationErrors.vue";
+import Success from "../../Components/Alert/Success.vue";
 
 const route = useRoute()
 
-console.log();
+const { errors, errorFor } = useValidationErrorHandling();
+const { is422, is500 } = useGetErrorResponseStatus();
 
 const state = reactive ({
-    loading: false
+    loading: false,
+    successAlert: null,
 });
 
 const formData = reactive({
@@ -71,6 +80,8 @@ const formData = reactive({
 const resetPassword = async () => {
     state.errors = [];
     state.loading = true;
+    state.successAlert = null;
+
     axios
         .post("/api/auth/reset-password", {
             password: formData.password,
@@ -79,10 +90,15 @@ const resetPassword = async () => {
             token: route.query.token,
         })
         .then((response) => {
-            // show notification
+            state.successAlert = response.data.message;
         })
         .catch(error => {
-            state.loading = false;
+            if (is422(error)) {
+                errors.value = error.response.data.errors;
+            } else if (is500(error)) {
+                state.warningAlert = error.response.data.message;
+            }
         })
+    state.loading = false;
 }
 </script>

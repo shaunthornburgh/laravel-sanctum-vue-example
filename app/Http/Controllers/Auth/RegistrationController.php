@@ -20,8 +20,6 @@ class RegistrationController extends Controller
     {
         $user = User::create($request->validated());
 
-        Auth::login($user);
-
         return response([
             'user' => new UserResource($user),
         ], 201);
